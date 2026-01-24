@@ -7,10 +7,10 @@ def load_pdf(file_path):
     for page in reader.pages:
         text += page.extract_text() + '\n'
     return text
-
+  
 def chunk_text(text):
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200
+        chunk_size=800,
+        chunk_overlap=150
     )
     return splitter.split_text(text)
