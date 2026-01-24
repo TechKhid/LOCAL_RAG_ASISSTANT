@@ -32,10 +32,13 @@ client = OpenSearch(
 
 def create_vector_index(index_name, config):
     if not client.indices.exists(index=index_name):
+        print(f"Index {index_name} does not exist. Creating...")
         client.indices.create(index=index_name,
                             body= config
                             )
-
+        print(f"Index {index_name} created.")
+    else:
+        print(f"Index {index_name} already exists.")
 
 
 def index_chunks(chunks, embedding, source, index_name):
