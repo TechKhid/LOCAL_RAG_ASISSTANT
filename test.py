@@ -1,6 +1,6 @@
 from opensearch_vector_index_setup import create_vector_index
 
-index_name = "pdf-rag"
+index_name = "pdf-rag-testing"
 config = {
             "settings":{
                 "index":{
@@ -9,7 +9,8 @@ config = {
             },
             "mappings":{
                 "properties": {
-                    "text": {
+                    "text": {"type": "text"},
+                    "embedding": {
                         "type": "knn_vector",
                         "dimension": 384
                     },
