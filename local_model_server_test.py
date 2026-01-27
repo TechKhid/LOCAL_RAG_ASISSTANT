@@ -1,44 +1,26 @@
 from openai import OpenAI
-from pprint import pprint
 
-client = OpenAI(
-    base_url="http://localhost:1234/v1"
-)
+client = OpenAI(base_url="http://localhost:1234/v1")
 
-exit_ = False
-context = []
-while not exit_:
-    try:
-        user_input = input("User: ")
+messages = [
+    {"role": "system", "content": "You are a helpful assistant."}
+]
 
-        if user_input.lower() == "exit":
-            exit_ = True
-            pprint("Exiting...")
-            break
+while True:
+    user_input = input("User: ")
 
-        context.append(f"User: {user_input}")
-        response = client.chat.completions.create(
-            model="local-model",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant.",
-                },
-                {
-                    "role": "user",
-                    "content": str(context),
-                }
-            ],
-        )
-        reply = f"Assistant: {response.choices[0].message.content}\n"
-        pprint(reply)
-        context.append(reply)
-        
-    except Exception as e:      
-        print(e)
-        exit_ = True
+    if user_input.lower() == "exit":
+        print("Exiting...")
+        break
 
+    messages.append({"role": "user", "content": user_input})
 
+    response = client.chat.completions.create(
+        model="local-model",
+        messages=messages,
+    )
 
+    assistant_reply = response.choices[0].message.content
+    print(f"Assistant: {assistant_reply}\n")
 
-#
+    messages.append({"role": "assistant", "content": assistant_reply})
