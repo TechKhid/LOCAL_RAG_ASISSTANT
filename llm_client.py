@@ -63,19 +63,19 @@ class LLMUtil:
 
 
 
+# USage
+
+# client = OpenAI(
+#     base_url="http://localhost:1234/v1"
+# )
 
 
-client = OpenAI(
-    base_url="http://localhost:1234/v1"
-)
+# llm_client = LLMUtil(client, r"prompts\v1.json")
 
-
-llm_client = LLMUtil(client, r"prompts\v1.json")
-
-while True:
-    user_input = input("User: ")
-    if user_input.lower() == "exit":
-        break
-    reply, token_stats = llm_client.chat(user_input)
-    print(f"Assistant: {reply}")
-    print("\nUsage Stats:\n", token_stats)
+# while True:
+#     user_input = input("User: ")
+#     if user_input.lower() == "exit":
+#         break
+#     reply, token_stats = llm_client.chat(user_input)
+#     print(f"Assistant: {reply}")
+#     print("\nUsage Stats:\n", token_stats)
