@@ -19,28 +19,15 @@ class RAGEngine(LLMUtil):
         return "\n\n---\n\n".join(context_parts)
 
     def query(self, user_query: str, index_name: str, k: int = 5) -> Tuple[str, str, List[Dict]]:
-        # 1. Search OpenSearch
-        from text_embedding import get_embedding
+        # 1. Search OpenSearch using reusable function
+        from opensearch_vector_index_setup import vector_search, get_search_stats
         
         print(f"[*] Searching OpenSearch index '{index_name}' for: '{user_query}'")
-        query_embedding = get_embedding(user_query)
-        response = os_client.search(
-            index=index_name,
-            body={
-                "size": k,
-                "query": {
-                    "knn": {
-                        "embedding": {
-                            "vector": query_embedding,
-                            "k": k
-                        }
-                    }
-                }
-            }
-        )
+        hits, raw_response = vector_search(user_query, index_name, k=k)
         
-        hits = response['hits']['hits']
-        print(f"[+] Found {len(hits)} relevant chunks.")
+        stats = get_search_stats(raw_response)
+        print(f"[+] Found {len(hits)} relevant chunks. Latency: {stats['took']}ms")
+        
         context = self._format_context(hits)
         
         # 2. Inject context into prompt

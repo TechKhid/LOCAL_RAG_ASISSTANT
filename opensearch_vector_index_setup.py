@@ -55,6 +55,28 @@ def index_chunks(chunks, embedding, source, index_name):
             }
         )
 
+def get_search_stats(response):
+    return {
+        "took": response.get('took', 0),
+        "total_hits": response.get('hits', {}).get('total', {}).get('value', 0)
+    }
+
+def print_search_results(hits, stats=None):
+    if stats:
+        print(f"Search latency: {stats['took']} ms")
+        print(f"Number of results: {len(hits)}")
+    print("-" * 60)
+    
+    for i, hit in enumerate(hits):
+        score = hit['_score']
+        source = hit['_source'].get('source', 'Unknown')
+        text = hit['_source'].get('text', '')
+        
+        print(f"Result {i+1} | Relevance Score: {score:.4f}")
+        print(f"Source: {source}")
+        print(f"Content: {text}") 
+        print("-" * 60)
+
 def vector_search(query, index_name, k=5):
     query_embedding = get_embedding(query)
     response = client.search(
@@ -71,20 +93,5 @@ def vector_search(query, index_name, k=5):
             }
         }
     )
-
-    print(f"\nQuery: {query}")
-    print(f"Search latency: {response['took']} ms")
     
-    hits = response['hits']['hits']
-    print(f"Number of results: {len(hits)}")
-    print("-" * 60)
-    
-    for i, hit in enumerate(hits):
-        score = hit['_score']
-        source = hit['_source'].get('source', 'Unknown')
-        text = hit['_source'].get('text', '')
-        
-        print(f"Result {i+1} | Relevance Score: {score:.4f}")
-        print(f"Source: {source}")
-        print(f"Content: {text}") 
-        print("-" * 60)
+    return response['hits']['hits'], response
