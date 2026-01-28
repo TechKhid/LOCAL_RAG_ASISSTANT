@@ -12,27 +12,29 @@ client = OpenSearch(
     verify_certs=False
 )
 
-# index_name = "pdf-rag"
-# config = {
-#             "settings":{
-#                 "index":{
-#                     "knn":True
-#                 }
-#             },
-#             "mappings":{
-#                 "properties": {
-#                     "text": {
-#                         "type": "knn_vector",
-#                         "dimension": 384
-#                     },
-#                     "source": {"type": "keyword"}
-#                 }
-#             }
-#         }
+# Default Index Configuration
+DEFAULT_CONFIG = {
+    "settings": {
+        "index": {
+            "knn": True
+        }
+    },
+    "mappings": {
+        "properties": {
+            "text": {"type": "text"},
+            "embedding": {
+                "type": "knn_vector",
+                "dimension": 384
+            },
+            "source": {"type": "keyword"}
+        }
+    }
+}
 
-
-
-def create_vector_index(index_name, config):
+def create_vector_index(index_name, config=None):
+    if config is None:
+        config = DEFAULT_CONFIG
+        
     if not client.indices.exists(index=index_name):
         print(f"Index {index_name} does not exist. Creating...")
         client.indices.create(index=index_name,

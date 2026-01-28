@@ -39,6 +39,6 @@ class RAGEngine(LLMUtil):
         reply, usage_stats = self.chat(augmented_query)
         print("[+] Response generated successfully.")
         
-        return reply, usage_stats, hits
+        return reply, usage_stats, hits, stats
 
     
