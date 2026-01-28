@@ -1,6 +1,6 @@
 import streamlit as st
-from rag_engine import RAGEngine
-from ingest_pdf import ingest
+from src.rag_engine import RAGEngine
+from src.ingestion import ingest_pdf
 import os
 import tempfile
 
@@ -10,7 +10,9 @@ st.set_page_config(page_title="Local RAG Assistant", page_icon="🤖", layout="w
 # Initialize RAG Engine
 @st.cache_resource
 def get_rag_engine():
-    return RAGEngine("http://localhost:1234/v1", r"prompts\rag_v1.json")
+    # Use path relative to root
+    prompt_path = os.path.join("prompts", "rag_v1.json")
+    return RAGEngine("http://localhost:1234/v1", prompt_path)
 
 engine = get_rag_engine()
 
@@ -35,7 +37,7 @@ with st.sidebar:
                     
                     st.write(f"Ingesting file: {uploaded_file.name}")
                     # Call ingestion with original filename as source label
-                    ingest(tmp_path, index_name, source_label=uploaded_file.name)
+                    ingest_pdf(tmp_path, index_name, source_label=uploaded_file.name)
                     
                     # Clean up
                     os.unlink(tmp_path)

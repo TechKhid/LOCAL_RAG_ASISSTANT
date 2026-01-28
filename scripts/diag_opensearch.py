@@ -1,12 +1,17 @@
-from opensearch_vector_index_setup import client
+import sys
+import os
 import json
+
+# Add project root to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.vector_store import client
 
 try:
     print("--- Cluster Info ---")
     print(json.dumps(client.info(), indent=2))
     
     print("\n--- Plugins ---")
-    # Using low-level transport for plugins check
     plugins = client.transport.perform_request("GET", "/_cat/plugins?v&s=component&h=name,component,version,description")
     print(plugins)
     

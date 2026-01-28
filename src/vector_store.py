@@ -1,18 +1,15 @@
 from opensearchpy import OpenSearch
-from text_embedding import get_embedding
+from src.embeddings import get_embedding
 
-
+# OpenSearch Client Connection
 client = OpenSearch(
-    hosts=[{
-        "host": "localhost", 
-        "port": 9200
-        }],
+    hosts=[{"host": "localhost", "port": 9200}],
     http_compress=True,
     use_ssl=False,
     verify_certs=False
 )
 
-# Default Index Configuration
+# Default Index Configuration for k-NN
 DEFAULT_CONFIG = {
     "settings": {
         "index": {
@@ -31,25 +28,27 @@ DEFAULT_CONFIG = {
     }
 }
 
-def create_vector_index(index_name, config=None):
+def create_vector_index(index_name: str, config: dict = None):
+    """
+    Create a new k-NN index if it doesn't already exist.
+    """
     if config is None:
         config = DEFAULT_CONFIG
         
     if not client.indices.exists(index=index_name):
-        print(f"Index {index_name} does not exist. Creating...")
-        client.indices.create(index=index_name,
-                            body= config
-                            )
-        print(f"Index {index_name} created.")
+        print(f"Index '{index_name}' does not exist. Creating...")
+        client.indices.create(index=index_name, body=config)
+        print(f"Index '{index_name}' created.")
     else:
-        print(f"Index {index_name} already exists.")
+        print(f"Index '{index_name}' already exists.")
 
-
-def index_chunks(chunks, embedding, source, index_name):
-    for i, (text, embed) in enumerate(zip(chunks, embedding)):
+def index_chunks(chunks, embeddings, source, index_name):
+    """
+    Upload chunks and their embeddings to the specified index.
+    """
+    for i, (text, embed) in enumerate(zip(chunks, embeddings)):
         client.index(
             index=index_name,
-            id=i,
             body={
                 "text": text,
                 "embedding": embed,
@@ -58,12 +57,18 @@ def index_chunks(chunks, embedding, source, index_name):
         )
 
 def get_search_stats(response):
+    """
+    Extract search metadata from OpenSearch response.
+    """
     return {
         "took": response.get('took', 0),
         "total_hits": response.get('hits', {}).get('total', {}).get('value', 0)
     }
 
 def print_search_results(hits, stats=None):
+    """
+    Utility function to print search results in a readable format.
+    """
     if stats:
         print(f"Search latency: {stats['took']} ms")
         print(f"Number of results: {len(hits)}")
@@ -79,7 +84,10 @@ def print_search_results(hits, stats=None):
         print(f"Content: {text}") 
         print("-" * 60)
 
-def vector_search(query, index_name, k=5):
+def vector_search(query: str, index_name: str, k: int = 5):
+    """
+    Perform a vector search and return hits and the raw response.
+    """
     query_embedding = get_embedding(query)
     response = client.search(
         index=index_name,
@@ -95,5 +103,4 @@ def vector_search(query, index_name, k=5):
             }
         }
     )
-    
     return response['hits']['hits'], response
