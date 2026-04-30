@@ -2,6 +2,7 @@ from typing import Any, List, Dict, Optional
 from openai import OpenAI
 from pathlib import Path
 import json
+from src.config import LLM_MODEL
 
 class LLMUtil:
     def __init__(self, client: OpenAI, prompt_template: str) -> None:
@@ -43,7 +44,7 @@ class LLMUtil:
         """
         return usage_stats
     
-    def chat(self, user_input: str, model: str = "local-model") -> tuple[str, str]:
+    def chat(self, user_input: str, model: str = LLM_MODEL) -> tuple[str, str]:
         self.messages.append({"role": "user", "content": user_input})
 
         response = self.client.chat.completions.create(

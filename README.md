@@ -32,20 +32,80 @@ RAG_T/
 
 ## 🚀 Getting Started
 
+### Recommended: Docker Compose
+
+This repo now includes a Docker-based startup path for the app and OpenSearch.
+LM Studio still runs locally on your machine, and the app container connects to it through `host.docker.internal`.
+
+1. Start LM Studio's local server on port `1234`.
+2. Optionally copy `.env.example` to `.env` and tweak values.
+3. Start the stack:
+
+   ```bash
+   docker compose up --build
+   ```
+
+4. Open the app at `http://localhost:8501`.
+
+If LM Studio is bound to a non-default address or you want to target a specific loaded model, set:
+
+```bash
+LLM_BASE_URL=http://100.107.43.35:1234/v1
+LLM_MODEL=zai-org/glm-4.6-v-flash
+```
+
+### OpenSearch Utility
+
+If you only want to manage OpenSearch and run the Streamlit app locally, use:
+
+```bash
+python scripts/opensearch_service.py up
+```
+
+Other supported actions:
+
+- `python scripts/opensearch_service.py status`
+- `python scripts/opensearch_service.py logs`
+- `python scripts/opensearch_service.py restart`
+- `python scripts/opensearch_service.py down`
+
 ### Prerequisites
 
-- **OpenSearch**: Running locally on port 9200.
+- **Docker Desktop**: Required for the Docker Compose workflow.
 - **LM Studio**: Or any OpenAI-compatible server running on port 1234.
 - **Python 3.9+**
 
-### Installation
+### Local Python Installation
 
 1. Clone the repository and navigate to the project directory.
 2. Install dependencies:
 
    ```bash
-   pip install streamlit openai opensearch-py sentence-transformers pymupdf langchain-text-splitters
+   pip install -r requirements.txt
    ```
+3. Start OpenSearch with Docker:
+
+   ```bash
+   python scripts/opensearch_service.py up
+   ```
+4. Run the app locally:
+
+   ```bash
+   streamlit run app.py
+   ```
+
+### Configuration
+
+The app can be configured with environment variables:
+
+- `LLM_BASE_URL` default: `http://localhost:1234/v1`
+- `LLM_MODEL` default: `local-model`
+- `OPENSEARCH_URL` default: `http://localhost:9200`
+- `DEFAULT_INDEX_NAME` default: `pdf-rag`
+- `EMBEDDING_MODEL_NAME` default: `all-MiniLM-L6-v2`
+- `OPENSEARCH_VERIFY_CERTS` default: `false`
+
+Inside Docker Compose, `OPENSEARCH_URL` is automatically set to `http://opensearch:9200`.
 
 ### Running the App
 
@@ -62,6 +122,7 @@ You can upload and index PDFs directly through the Streamlit UI sidebar.
 - **Run Tests**: `python tests/test_rag_engine.py`
 - **Check Mapping**: `python scripts/diag_opensearch.py`
 - **Reset Indices**: `python scripts/reset_os_indices.py`
+- **Manage OpenSearch**: `python scripts/opensearch_service.py <up|down|restart|logs|status>`
 
 ## 📊 Performance Tracking
 

@@ -1,0 +1,48 @@
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2.13.0
+    container_name: local-rag-opensearch
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - DISABLE_SECURITY_PLUGIN=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: local-rag-app
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    environment:
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:1234/v1}
+      LLM_MODEL: ${LLM_MODEL:-local-model}
+      OPENSEARCH_URL: http://opensearch:9200
+      DEFAULT_INDEX_NAME: ${DEFAULT_INDEX_NAME:-pdf-rag}
+      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-all-MiniLM-L6-v2}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8501:8501"
+    volumes:
+      - huggingface-cache:/root/.cache/huggingface
+
+volumes:
+  opensearch-data:
+  huggingface-cache:

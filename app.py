@@ -1,6 +1,7 @@
 import streamlit as st
 from src.rag_engine import RAGEngine
 from src.ingestion import ingest_pdf
+from src.config import DEFAULT_INDEX_NAME, LLM_BASE_URL
 import os
 import tempfile
 
@@ -12,14 +13,14 @@ st.set_page_config(page_title="Local RAG Assistant", page_icon="🤖", layout="w
 def get_rag_engine():
     # Use path relative to root
     prompt_path = os.path.join("prompts", "rag_v1.json")
-    return RAGEngine("http://localhost:1234/v1", prompt_path)
+    return RAGEngine(LLM_BASE_URL, prompt_path)
 
 engine = get_rag_engine()
 
 # Sidebar - Settings & Upload
 with st.sidebar:
     st.title("⚙️ Settings")
-    index_name = st.text_input("OpenSearch Index", value="pdf-rag")
+    index_name = st.text_input("OpenSearch Index", value=DEFAULT_INDEX_NAME)
     top_k = st.slider("Number of Chunks (k)", 1, 10, 5)
     
     st.divider()

@@ -5,7 +5,7 @@ from src.vector_store import vector_search, get_search_stats
 
 class RAGEngine(LLMUtil):
     def __init__(self, llm_client_base_url: str, prompt_path: str):
-        openai_client = OpenAI(base_url=llm_client_base_url)
+        openai_client = OpenAI(base_url=llm_client_base_url, api_key="local-not-required")
         super().__init__(openai_client, prompt_path)
         
     def _format_context(self, hits: List[Dict]) -> str:

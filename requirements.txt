@@ -1,0 +1,6 @@
+streamlit
+openai
+opensearch-py
+sentence-transformers
+pymupdf
+langchain-text-splitters

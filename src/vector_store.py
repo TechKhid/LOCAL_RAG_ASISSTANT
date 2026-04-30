@@ -1,13 +1,9 @@
 from opensearchpy import OpenSearch
+from src.config import get_opensearch_client_config
 from src.embeddings import get_embedding
 
 # OpenSearch Client Connection
-client = OpenSearch(
-    hosts=[{"host": "localhost", "port": 9200}],
-    http_compress=True,
-    use_ssl=False,
-    verify_certs=False
-)
+client = OpenSearch(**get_opensearch_client_config())
 
 # Default Index Configuration for k-NN
 DEFAULT_CONFIG = {

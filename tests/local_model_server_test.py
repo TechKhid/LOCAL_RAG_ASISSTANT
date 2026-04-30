@@ -1,6 +1,7 @@
 from openai import OpenAI
+from src.config import LLM_BASE_URL
 
-client = OpenAI(base_url="http://localhost:1234/v1")
+client = OpenAI(base_url=LLM_BASE_URL, api_key="local-not-required")
 
 messages = [
     {"role": "system", "content": "You are a helpful assistant."}
