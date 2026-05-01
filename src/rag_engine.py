@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from openai import OpenAI
 from src.llm_client import LLMUtil
 from src.vector_store import vector_search, get_search_stats
@@ -16,7 +16,13 @@ class RAGEngine(LLMUtil):
             context_parts.append(f"Source: {source}\nContent: {text}")
         return "\n\n---\n\n".join(context_parts)
 
-    def query(self, user_query: str, index_name: str, k: int = 5) -> Tuple[str, str, List[Dict], Dict]:
+    def query(
+        self,
+        user_query: str,
+        index_name: str,
+        k: int = 5,
+        history: Optional[List[Dict[str, str]]] = None,
+    ) -> Tuple[str, str, List[Dict], Dict]:
         # 1. Search OpenSearch
         print(f"[*] Searching OpenSearch index '{index_name}' for: '{user_query}'")
         hits, raw_response = vector_search(user_query, index_name, k=k)
@@ -31,7 +37,7 @@ class RAGEngine(LLMUtil):
         
         # 3. Get LLM response using inherited chat method
         print("[*] Generating response from local LLM...")
-        reply, usage_stats = self.chat(augmented_query)
+        reply, usage_stats = self.chat(augmented_query, history=history)
         print("[+] Response generated successfully.")
         
         return reply, usage_stats, hits, stats

@@ -1,11 +1,33 @@
+from functools import lru_cache
+from openai import OpenAI
 from sentence_transformers import SentenceTransformer
-from src.config import EMBEDDING_MODEL_NAME
+from src.config import (
+    EMBEDDING_BASE_URL,
+    EMBEDDING_MODEL_NAME,
+    use_remote_embeddings,
+)
 
-# Load model once at module level
-embedder = SentenceTransformer(EMBEDDING_MODEL_NAME)
 
-def get_embedding(text: str):
+@lru_cache(maxsize=1)
+def get_sentence_transformer() -> SentenceTransformer:
+    return SentenceTransformer(EMBEDDING_MODEL_NAME)
+
+
+@lru_cache(maxsize=1)
+def get_embedding_client() -> OpenAI:
+    return OpenAI(base_url=EMBEDDING_BASE_URL, api_key="local-not-required")
+
+
+def get_embedding(text: str) -> list[float]:
     """
-    Generate a 384-dimensional embedding for the given text.
+    Generate an embedding using either a local sentence-transformers model
+    or an OpenAI-compatible embeddings endpoint such as LM Studio.
     """
-    return embedder.encode(text).tolist()
+    if use_remote_embeddings():
+        response = get_embedding_client().embeddings.create(
+            model=EMBEDDING_MODEL_NAME,
+            input=text,
+        )
+        return response.data[0].embedding
+
+    return get_sentence_transformer().encode(text).tolist()

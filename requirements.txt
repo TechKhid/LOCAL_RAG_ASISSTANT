@@ -4,3 +4,6 @@ opensearch-py
 sentence-transformers
 pymupdf
 langchain-text-splitters
+starlette
+uvicorn
+python-multipart

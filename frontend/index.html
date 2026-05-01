@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Local RAG Console</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Local Retrieval Workspace</p>
+          <h1>Local RAG Console</h1>
+        </div>
+        <div class="status-strip">
+          <span class="status-dot"></span>
+          <span id="health-label">Checking backend...</span>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="rail rail-left">
+          <section class="panel panel-hero">
+            <p class="panel-kicker">Indexing</p>
+            <h2>Bring large PDFs in safely</h2>
+            <p class="muted">
+              Upload files, let ingestion run in the background, and keep the
+              chat interface responsive while indexing finishes.
+            </p>
+            <form id="upload-form" class="stacked-form">
+              <label class="field">
+                <span>Index name</span>
+                <input id="index-name" name="index_name" type="text" value="pdf-rag" />
+              </label>
+              <label class="upload-drop">
+                <input id="pdf-file" name="file" type="file" accept="application/pdf" />
+                <span class="upload-title">Drop a PDF here or browse</span>
+                <span id="upload-file-name" class="upload-meta">Up to 2 GB</span>
+              </label>
+              <button class="primary-button" type="submit">Start Ingestion</button>
+            </form>
+            <div id="upload-feedback" class="feedback"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <div>
+                <p class="panel-kicker">Activity</p>
+                <h3>Background jobs</h3>
+              </div>
+              <button id="refresh-jobs" class="ghost-button" type="button">Refresh</button>
+            </div>
+            <div id="jobs-list" class="job-list empty-state">
+              No ingestion jobs yet.
+            </div>
+          </section>
+        </aside>
+
+        <section class="conversation">
+          <section class="hero-banner">
+            <div>
+              <p class="panel-kicker">Assistant</p>
+              <h2>Ask across your indexed documents</h2>
+              <p class="muted">
+                The chat stays separate from ingestion, so long uploads no longer
+                own the whole interface lifecycle.
+              </p>
+            </div>
+            <div class="metric-group">
+              <div class="metric-card">
+                <span class="metric-label">Top K</span>
+                <span id="top-k-value" class="metric-value">5</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Indexed Chunks</span>
+                <span id="chunk-count" class="metric-value">0</span>
+              </div>
+            </div>
+          </section>
+
+          <section id="chat-feed" class="chat-feed"></section>
+
+          <form id="chat-form" class="chat-form">
+            <label class="field grow">
+              <span>Question</span>
+              <textarea
+                id="question-input"
+                rows="3"
+                placeholder="Ask something about your uploaded documents..."
+              ></textarea>
+            </label>
+            <div class="chat-controls">
+              <label class="field compact">
+                <span>Retrieval depth</span>
+                <input id="top-k-input" type="range" min="1" max="10" value="5" />
+              </label>
+              <button class="primary-button" type="submit">Send Question</button>
+            </div>
+          </form>
+        </section>
+
+        <aside class="rail rail-right">
+          <section class="panel">
+            <p class="panel-kicker">Library</p>
+            <h3>Index snapshot</h3>
+            <div id="library-summary" class="summary-grid"></div>
+            <div id="source-catalog" class="source-catalog empty-state">
+              Sources will appear here after indexing.
+            </div>
+          </section>
+
+          <section class="panel">
+            <p class="panel-kicker">Evidence</p>
+            <h3>Latest sources</h3>
+            <div id="latest-sources" class="source-list empty-state">
+              Ask a question to inspect the retrieved chunks.
+            </div>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>

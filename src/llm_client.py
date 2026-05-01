@@ -13,10 +13,6 @@ class LLMUtil:
         if self.system_prompt is None:
             raise ValueError("System prompt could not be loaded.")
 
-        self.messages: List[Dict[str, str]] = [
-            {"role": "system", "content": self.system_prompt}
-        ]
-
     def _fetch_prompt(self) -> Optional[str]:
         data = self._read_prompt_file(self.prompt_path)
         if not data:
@@ -43,16 +39,33 @@ class LLMUtil:
         {'-' * 50}
         """
         return usage_stats
-    
-    def chat(self, user_input: str, model: str = LLM_MODEL) -> tuple[str, str]:
-        self.messages.append({"role": "user", "content": user_input})
+
+    def _build_messages(
+        self,
+        user_input: str,
+        history: Optional[List[Dict[str, str]]] = None,
+    ) -> List[Dict[str, str]]:
+        messages: List[Dict[str, str]] = [
+            {"role": "system", "content": self.system_prompt}
+        ]
+        if history:
+            messages.extend(history)
+        messages.append({"role": "user", "content": user_input})
+        return messages
+
+    def chat(
+        self,
+        user_input: str,
+        model: str = LLM_MODEL,
+        history: Optional[List[Dict[str, str]]] = None,
+    ) -> tuple[str, str]:
+        messages = self._build_messages(user_input, history=history)
 
         response = self.client.chat.completions.create(
             model=model,
-            messages=self.messages,
+            messages=messages,
         )
 
         reply = response.choices[0].message.content
         usage_stats = self._get_usage_stats(response)
-        self.messages.append({"role": "assistant", "content": reply})
         return reply, usage_stats

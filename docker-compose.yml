@@ -4,7 +4,6 @@ services:
     container_name: local-rag-opensearch
     environment:
       - discovery.type=single-node
-      - plugins.security.disabled=true
       - DISABLE_INSTALL_DEMO_CONFIG=true
       - DISABLE_SECURITY_PLUGIN=true
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
@@ -27,6 +26,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: local-rag-app
+    command: ["uvicorn", "rag_api:app", "--host", "0.0.0.0", "--port", "8501"]
+    restart: unless-stopped
     depends_on:
       opensearch:
         condition: service_healthy
@@ -36,11 +37,13 @@ services:
       OPENSEARCH_URL: http://opensearch:9200
       DEFAULT_INDEX_NAME: ${DEFAULT_INDEX_NAME:-pdf-rag}
       EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-all-MiniLM-L6-v2}
+      EMBEDDING_BACKEND: ${EMBEDDING_BACKEND:-auto}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
-      - "8501:8501"
+      - "8510:8501"
     volumes:
+      - .:/app
       - huggingface-cache:/root/.cache/huggingface
 
 volumes:

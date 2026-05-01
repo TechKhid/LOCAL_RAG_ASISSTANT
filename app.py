@@ -2,11 +2,29 @@ import streamlit as st
 from src.rag_engine import RAGEngine
 from src.ingestion import ingest_pdf
 from src.config import DEFAULT_INDEX_NAME, LLM_BASE_URL
+import gc
 import os
 import tempfile
 
+UPLOAD_CHUNK_SIZE = 8 * 1024 * 1024
+
+
+def save_uploaded_file(uploaded_file) -> str:
+    """
+    Persist the uploaded PDF to a temp file without creating a second full-size
+    in-memory copy.
+    """
+    uploaded_file.seek(0)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+        while chunk := uploaded_file.read(UPLOAD_CHUNK_SIZE):
+            tmp_file.write(chunk)
+        return tmp_file.name
+
 # Page Config
 st.set_page_config(page_title="Local RAG Assistant", page_icon="🤖", layout="wide")
+
+if "upload_notice" not in st.session_state:
+    st.session_state.upload_notice = None
 
 # Initialize RAG Engine
 @st.cache_resource
@@ -25,29 +43,44 @@ with st.sidebar:
     
     st.divider()
     st.title("📄 Upload Documents")
-    uploaded_file = st.file_uploader("Upload a PDF for RAG", type="pdf")
-    
-    if uploaded_file is not None:
-        if st.button("🚀 Index PDF"):
-            with st.status("Indexing document...", expanded=True) as status:
-                try:
-                    # Save to temp file
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-                        tmp_file.write(uploaded_file.getvalue())
-                        tmp_path = tmp_file.name
-                    
-                    st.write(f"Ingesting file: {uploaded_file.name}")
-                    # Call ingestion with original filename as source label
-                    ingest_pdf(tmp_path, index_name, source_label=uploaded_file.name)
-                    
-                    # Clean up
+    st.caption("Max PDF upload size: 2 GB")
+
+    if st.session_state.upload_notice:
+        st.success(st.session_state.upload_notice)
+        st.session_state.upload_notice = None
+
+    with st.form("pdf_upload_form", clear_on_submit=True):
+        uploaded_file = st.file_uploader("Upload a PDF for RAG", type="pdf")
+        if uploaded_file is not None:
+            st.caption(
+                f"Selected: {uploaded_file.name} "
+                f"({uploaded_file.size / (1024 * 1024):.1f} MB)"
+            )
+        submit_upload = st.form_submit_button("🚀 Index PDF")
+
+    if uploaded_file is not None and submit_upload:
+        with st.status("Indexing document...", expanded=True) as status:
+            tmp_path = None
+            try:
+                tmp_path = save_uploaded_file(uploaded_file)
+
+                st.write(f"Ingesting file: {uploaded_file.name}")
+                # Call ingestion with original filename as source label
+                ingest_pdf(tmp_path, index_name, source_label=uploaded_file.name)
+
+                status.update(label="✅ Indexing Complete!", state="complete", expanded=False)
+                st.session_state.upload_notice = (
+                    f"File '{uploaded_file.name}' added to index '{index_name}'."
+                )
+                del uploaded_file
+                gc.collect()
+                st.rerun()
+            except Exception as e:
+                status.update(label="❌ Indexing Failed", state="error")
+                st.error(f"Error during ingestion: {str(e)}")
+            finally:
+                if tmp_path and os.path.exists(tmp_path):
                     os.unlink(tmp_path)
-                    
-                    status.update(label="✅ Indexing Complete!", state="complete", expanded=False)
-                    st.success(f"File '{uploaded_file.name}' added to index '{index_name}'!")
-                except Exception as e:
-                    status.update(label="❌ Indexing Failed", state="error")
-                    st.error(f"Error during ingestion: {str(e)}")
 
     st.divider()
     st.markdown("### About")

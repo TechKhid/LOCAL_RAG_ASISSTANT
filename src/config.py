@@ -17,6 +17,16 @@ OPENSEARCH_USERNAME = os.getenv("OPENSEARCH_USERNAME")
 OPENSEARCH_PASSWORD = os.getenv("OPENSEARCH_PASSWORD")
 DEFAULT_INDEX_NAME = os.getenv("DEFAULT_INDEX_NAME", "pdf-rag")
 EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2")
+EMBEDDING_BACKEND = os.getenv("EMBEDDING_BACKEND", "auto").strip().lower()
+EMBEDDING_BASE_URL = os.getenv("EMBEDDING_BASE_URL", LLM_BASE_URL)
+
+
+def use_remote_embeddings() -> bool:
+    if EMBEDDING_BACKEND == "openai":
+        return True
+    if EMBEDDING_BACKEND == "sentence-transformers":
+        return False
+    return EMBEDDING_MODEL_NAME.startswith("text-embedding-")
 
 
 def get_opensearch_client_config() -> dict:
